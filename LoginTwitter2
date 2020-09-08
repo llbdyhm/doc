@@ -1,0 +1,63 @@
+#访问是否存在cookie
+    # 文件保存位置,路径+cookie+网站名+用户名
+#如果不存在,twitter需要人来过机器识别的关,并且保存cookie.如果存在,跳到第三步
+    # 登录实现用selenium自动登录
+#利用cookie登录,
+    # 实现主页面自动发送编辑好的text
+
+import pathlib
+from selenium import webdriver
+import pickle
+import time
+
+def login_first_auto(driver):
+    name_input=driver.find_element_by_name("session[username_or_email]")
+    name_input.send_keys(username)
+    password_input=driver.find_element_by_name("session[password]")
+    password_input.send_keys(password)
+    login_button=driver.find_element_by_xpath("//span[contains(text(),'登录')]")
+    login_button.click()
+
+def login_first():
+    driver = webdriver.Chrome()
+    driver.maximize_window()
+    driver.get('https://www.' + website)
+    login_first_auto(driver)
+    cookies = driver.get_cookies()
+    with open(cookie_path, 'wb') as f:
+        pickle.dump(cookies, f)
+    driver.close()
+
+def login_again():
+    driver = webdriver.Chrome()
+    driver.maximize_window()
+    driver.get('https://www.' + website)
+    driver.delete_all_cookies()
+    with open(cookie_path, 'rb') as f:
+        cookies = pickle.load(f)
+    for cookie in cookies:
+        driver.add_cookie(cookie)
+    driver.get('https://www.' + website)
+    time.sleep(20)
+    twit(driver)
+
+def twit(driver):
+    text_board=driver.find_element_by_xpath("//div[@aria-label='Tweet text']")
+    text=time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+    text_board.click()
+    text_board.send_keys(text)
+    tweet_button=driver.find_element_by_xpath("//div[@data-testid='tweetButtonInline']")
+    time.sleep(5)
+    tweet_button.click()
+    time.sleep(60)
+
+if __name__=='__main__':
+    website = 'twitter.com'
+    file_path = "C:\\Users\\liu\\Desktop\\cookie\\"
+    username = '省略'
+    password = '省略'
+    cookie_path = file_path + website + username
+    path = pathlib.Path(cookie_path)
+    if not path.is_file():
+        login_first()
+    login_again()
